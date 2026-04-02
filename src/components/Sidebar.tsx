@@ -130,7 +130,7 @@ export default function Sidebar() {
         </div>
 
         {/* Add Funds */}
-        <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent text-bg-primary text-[13px] font-semibold hover:bg-accent-hover transition-all active:scale-[0.98]">
+        <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent text-white text-[13px] font-semibold hover:bg-accent-hover transition-all active:scale-[0.98]">
           <Sparkles size={14} />
           <span>Add funds</span>
         </button>
