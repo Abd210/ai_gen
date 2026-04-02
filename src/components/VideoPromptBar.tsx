@@ -1,32 +1,70 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { Plus, Upload, Image as ImageIcon, ChevronDown, Clock, Square, Heart, Volume2, Pencil } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Plus, ChevronDown, Clock, Square, Heart, Volume2, Sparkles } from 'lucide-react';
 import { videoModels, VideoModel } from '@/data/video-models';
 import GenerateButton from './GenerateButton';
 import SelectorChip from './SelectorChip';
 import ToggleChip from './ToggleChip';
+import VideoModelDropdown from './VideoModelDropdown';
+import DurationDropdown from './DurationDropdown';
+import AspectRatioDropdown from './AspectRatioDropdown';
+
+type ActiveDropdown = null | 'model' | 'duration' | 'aspect' | 'resolution';
+
+const resolutionLabels: Record<string, string> = {
+  '720p': '720p',
+  '1080p': '1080p',
+};
 
 export default function VideoPromptBar() {
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState<VideoModel>(videoModels[0]);
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
-  const [duration, setDuration] = useState('8s');
-  const [aspectRatio, setAspectRatio] = useState('16:9');
-  const [resolution, setResolution] = useState('720p');
-  const [enhanceOn, setEnhanceOn] = useState(true);
+  const [activeDropdown, setActiveDropdown] = useState<ActiveDropdown>(null);
+
+  const [duration, setDuration] = useState(selectedModel.defaultDuration);
+  const [aspectRatio, setAspectRatio] = useState(selectedModel.aspectRatios[0]);
+  const [resolution, setResolution] = useState(selectedModel.resolutions[0]);
   const [soundOn, setSoundOn] = useState(true);
+  const [enhanceOn, setEnhanceOn] = useState(true);
+
+  // Sync settings when model changes
+  useEffect(() => {
+    setDuration(selectedModel.defaultDuration);
+    if (!selectedModel.aspectRatios.includes(aspectRatio)) {
+      setAspectRatio(selectedModel.aspectRatios[0]);
+    }
+    if (!selectedModel.resolutions.includes(resolution)) {
+      setResolution(selectedModel.resolutions[0]);
+    }
+    if (!selectedModel.soundSupport) {
+      setSoundOn(false);
+    } else {
+      setSoundOn(true);
+    }
+    if (!selectedModel.enhanceSupport) {
+      setEnhanceOn(false);
+    }
+  }, [selectedModel]);
 
   const handleModelSelect = useCallback((model: VideoModel) => {
     setSelectedModel(model);
-    setShowModelDropdown(false);
-    setDuration(model.durations[1] || model.durations[0]);
+    setActiveDropdown(null);
   }, []);
+
+  const toggleDropdown = useCallback((dropdown: ActiveDropdown) => {
+    setActiveDropdown((prev) => (prev === dropdown ? null : dropdown));
+  }, []);
+
+  // Compute cost dynamically
+  const isHD = resolution === '1080p';
+  const baseCost = selectedModel.costPerGeneration;
+  const totalCost = Math.ceil(baseCost * (isHD ? selectedModel.hdCostMultiplier : 1));
 
   return (
     <div className="fixed bottom-0 left-[240px] right-0 z-30 px-6 pb-5 pointer-events-none">
       <div className="max-w-[900px] mx-auto pointer-events-auto">
-        <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-hidden">
+        <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-visible">
           {/* Prompt Input Row */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
             <button className="p-2 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-all shrink-0">
@@ -52,64 +90,81 @@ export default function VideoPromptBar() {
               {/* Model Selector */}
               <div className="relative">
                 <button
-                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  onClick={() => toggleDropdown('model')}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all duration-150 border border-accent/30 bg-accent-dim text-accent"
                 >
                   <span className="text-sm">{selectedModel.icon}</span>
                   <span>{selectedModel.name}</span>
-                  <ChevronDown size={12} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={12} className={`transition-transform ${activeDropdown === 'model' ? 'rotate-180' : ''}`} />
                 </button>
 
-                {showModelDropdown && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
-                    <div className="absolute bottom-full left-0 mb-2 w-[280px] max-h-[360px] bg-bg-secondary border border-border rounded-2xl shadow-dropdown z-50 overflow-y-auto animate-scale-in py-2 px-2">
-                      {videoModels.map((model) => (
-                        <button
-                          key={model.id}
-                          onClick={() => handleModelSelect(model)}
-                          className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                            model.id === selectedModel.id ? 'bg-accent-dim' : 'hover:bg-surface-hover'
-                          }`}
-                        >
-                          <span className="text-lg shrink-0">{model.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[12px] font-medium text-text-primary">{model.name}</span>
-                              {model.tags.map((tag) => (
-                                <span key={tag} className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                                  tag === 'NEW' ? 'bg-accent text-bg-primary' :
-                                  tag === 'BUSINESS' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
-                                  'border border-accent/40 text-accent'
-                                }`}>{tag === 'BUSINESS' ? 'FOR BUSINESS PLANS' : tag}</span>
-                              ))}
-                            </div>
-                            <p className="text-[10px] text-text-tertiary mt-0.5">{model.description}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </>
+                {activeDropdown === 'model' && (
+                  <VideoModelDropdown
+                    models={videoModels}
+                    selectedModelId={selectedModel.id}
+                    onSelect={handleModelSelect}
+                    onClose={() => setActiveDropdown(null)}
+                  />
                 )}
               </div>
 
-              {/* Duration */}
-              <SelectorChip
-                icon={<Clock size={10} />}
-                label={duration}
-              />
+              {/* Duration — with drag slider */}
+              <div className="relative">
+                <SelectorChip
+                  icon={<Clock size={10} />}
+                  label={`${duration}s`}
+                  onClick={() => toggleDropdown('duration')}
+                  isActive={activeDropdown === 'duration'}
+                />
+                {activeDropdown === 'duration' && (
+                  <DurationDropdown
+                    min={selectedModel.durationRange[0]}
+                    max={selectedModel.durationRange[1]}
+                    step={selectedModel.durationStep}
+                    value={duration}
+                    onChange={setDuration}
+                    onClose={() => setActiveDropdown(null)}
+                  />
+                )}
+              </div>
 
               {/* Aspect Ratio */}
-              <SelectorChip
-                icon={<Square size={10} />}
-                label={aspectRatio}
-              />
+              <div className="relative">
+                <SelectorChip
+                  icon={<Square size={10} />}
+                  label={aspectRatio}
+                  onClick={() => toggleDropdown('aspect')}
+                  isActive={activeDropdown === 'aspect'}
+                />
+                {activeDropdown === 'aspect' && (
+                  <AspectRatioDropdown
+                    options={selectedModel.aspectRatios}
+                    selected={aspectRatio}
+                    onSelect={(r) => {
+                      setAspectRatio(r);
+                      setActiveDropdown(null);
+                    }}
+                    onClose={() => setActiveDropdown(null)}
+                  />
+                )}
+              </div>
 
               {/* Resolution */}
-              <SelectorChip
-                icon={<Heart size={10} />}
-                label={resolution}
-              />
+              <div className="relative">
+                <SelectorChip
+                  icon={<Heart size={10} />}
+                  label={resolutionLabels[resolution] || resolution}
+                  onClick={() => {
+                    if (selectedModel.resolutions.length > 1) {
+                      // cycle between resolutions
+                      const idx = selectedModel.resolutions.indexOf(resolution);
+                      const next = selectedModel.resolutions[(idx + 1) % selectedModel.resolutions.length];
+                      setResolution(next);
+                    }
+                  }}
+                  isActive={resolution === '1080p'}
+                />
+              </div>
 
               {/* Sound */}
               {selectedModel.soundSupport && (
@@ -121,16 +176,18 @@ export default function VideoPromptBar() {
               )}
 
               {/* Enhance */}
-              <SelectorChip
-                icon={<Pencil size={10} />}
-                label={enhanceOn ? 'Enhance on' : 'Enhance off'}
-                isActive={enhanceOn}
-                onClick={() => setEnhanceOn(!enhanceOn)}
-              />
+              {selectedModel.enhanceSupport && (
+                <SelectorChip
+                  icon={<Sparkles size={10} />}
+                  label={enhanceOn ? 'Enhance on' : 'Enhance off'}
+                  isActive={enhanceOn}
+                  onClick={() => setEnhanceOn(!enhanceOn)}
+                />
+              )}
             </div>
 
             {/* Generate Button */}
-            <GenerateButton cost={selectedModel.costPerGeneration} />
+            <GenerateButton cost={totalCost} />
           </div>
         </div>
       </div>
