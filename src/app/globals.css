@@ -13,25 +13,25 @@
 
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-strong: rgba(255, 255, 255, 0.15);
-  --color-border-accent: rgba(200, 255, 0, 0.3);
+  --color-border-accent: rgba(168, 85, 247, 0.35);
 
-  --color-accent: #c8ff00;
-  --color-accent-hover: #d4ff33;
-  --color-accent-muted: rgba(200, 255, 0, 0.15);
-  --color-accent-dim: rgba(200, 255, 0, 0.08);
+  --color-accent: #a855f7;
+  --color-accent-hover: #c084fc;
+  --color-accent-muted: rgba(168, 85, 247, 0.18);
+  --color-accent-dim: rgba(168, 85, 247, 0.08);
 
   --color-text-primary: #f0f0f0;
   --color-text-secondary: #888888;
   --color-text-tertiary: #555555;
-  --color-text-accent: #c8ff00;
+  --color-text-accent: #a855f7;
 
   --color-danger: #ff4444;
   --color-success: #22c55e;
-  --color-premium: #c8ff00;
-  --color-new-badge: #c8ff00;
+  --color-premium: #a855f7;
+  --color-new-badge: #c084fc;
 
   --color-glow-blue: rgba(30, 80, 180, 0.15);
-  --color-glow-accent: rgba(200, 255, 0, 0.06);
+  --color-glow-accent: rgba(168, 85, 247, 0.08);
 
   --font-sans: var(--font-inter);
 
@@ -42,7 +42,7 @@
   --radius-full: 9999px;
 
   --shadow-glow: 0 0 60px rgba(30, 80, 180, 0.12);
-  --shadow-glow-accent: 0 0 40px rgba(200, 255, 0, 0.08);
+  --shadow-glow-accent: 0 0 40px rgba(168, 85, 247, 0.12);
   --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-dropdown: 0 12px 48px rgba(0, 0, 0, 0.6);
 
@@ -75,6 +75,11 @@
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
+}
+
+@keyframes waveform {
+  0%, 100% { height: 20%; }
+  50% { height: 80%; }
 }
 
 * {
@@ -113,7 +118,7 @@ body {
 }
 
 ::selection {
-  background: rgba(200, 255, 0, 0.25);
+  background: rgba(168, 85, 247, 0.3);
   color: #ffffff;
 }
 
@@ -150,12 +155,12 @@ textarea::placeholder {
 }
 
 .glow-orb-accent {
-  background: radial-gradient(circle, rgba(200, 255, 0, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
 }
 
 /* Premium text gradient */
 .text-gradient {
-  background: linear-gradient(135deg, #c8ff00, #8aff00);
+  background: linear-gradient(135deg, #a855f7, #c084fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

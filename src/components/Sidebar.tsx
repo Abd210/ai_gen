@@ -14,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   PanelLeftClose,
+  Mic,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -24,6 +25,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Video,
   Joystick,
   FileText,
+  Mic,
 };
 
 interface SidebarItemProps {
@@ -64,6 +66,7 @@ const menuItems = [
   { id: 'generations', label: 'Generations', icon: 'History', route: '/generations' },
   { id: 'image', label: 'Image', icon: 'Image', route: '/image' },
   { id: 'video', label: 'Video', icon: 'Video', route: '/video' },
+  { id: 'audio', label: 'Audio', icon: 'Mic', route: '/audio' },
   { id: 'motion-control', label: 'Motion Control', icon: 'Joystick', route: '/motion-control' },
   { id: 'my-prompts', label: 'My Prompts', icon: 'FileText', route: '/my-prompts' },
 ];
