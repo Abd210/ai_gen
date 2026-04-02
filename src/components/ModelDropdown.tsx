@@ -67,7 +67,15 @@ function ModelCard({
             <ModelBadge key={tag} tag={tag} />
           ))}
         </div>
-        <p className="text-[11px] text-text-tertiary mt-0.5 truncate">{model.description}</p>
+        <p className="text-[11px] text-text-tertiary mt-0.5 line-clamp-1">{model.description}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="flex items-center gap-0.5 text-[10px] text-accent font-medium">
+            <Sparkles size={8} />
+            {model.costPerImage}
+          </span>
+          <span className="text-[10px] text-text-tertiary">{model.generationTime}</span>
+          <span className="text-[10px] text-text-tertiary">{model.qualityOptions.map(q => q.label).join(' / ')}</span>
+        </div>
       </div>
       {isSelected && (
         <Check size={16} className="text-accent shrink-0 mt-1" />
@@ -94,15 +102,15 @@ export default function ModelDropdown({ models, selectedModelId, onSelect, onClo
       {/* Backdrop */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
-      {/* Dropdown */}
-      <div className="absolute bottom-full left-0 mb-2 w-[320px] max-h-[480px] bg-bg-secondary border border-border rounded-2xl shadow-dropdown z-50 flex flex-col animate-scale-in overflow-hidden">
+      {/* Dropdown — positioned with fixed so it never clips */}
+      <div className="fixed bottom-[70px] left-[calc(240px+24px)] w-[360px] max-h-[520px] bg-bg-secondary border border-border rounded-2xl shadow-dropdown z-50 flex flex-col animate-scale-in overflow-hidden">
         {/* Search */}
         <div className="p-3 border-b border-border">
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface border border-border">
             <Search size={14} className="text-text-tertiary shrink-0" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search models..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
