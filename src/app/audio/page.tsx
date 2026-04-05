@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import AppShell from '@/components/AppShell';
+import { useToast } from '@/components/ToastProvider';
 import {
   Mic, Play, Pause, Volume2, VolumeX, ChevronDown,
   Sparkles, Globe, RefreshCw, Music, Headphones,
-  Plus, Upload,
+  Plus, Upload, Download, Clock, Wand2,
 } from 'lucide-react';
 
 const voices = [
@@ -39,7 +40,18 @@ function WaveformBar({ delay, active }: { delay: number; active: boolean }) {
   );
 }
 
+interface AudioResult {
+  id: string;
+  prompt: string;
+  type: Tab;
+  voice?: string;
+  model: string;
+  duration: string;
+  createdAt: string;
+}
+
 export default function AudioPage() {
+  const { toast } = useToast();
   const [prompt, setPrompt] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('voiceover');
   const [selectedVoice, setSelectedVoice] = useState(voices[0]);
@@ -47,6 +59,28 @@ export default function AudioPage() {
   const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [results, setResults] = useState<AudioResult[]>([]);
+
+  const handleGenerate = () => {
+    if (!prompt.trim()) { toast('Enter a prompt first', 'warning'); return; }
+    setIsGenerating(true);
+    const dur = `${(Math.random() * 20 + 5).toFixed(1)}s`;
+    setTimeout(() => {
+      setResults((prev) => [{
+        id: `a-${Date.now()}`,
+        prompt: prompt.trim(),
+        type: activeTab,
+        voice: activeTab === 'voiceover' ? selectedVoice.name : undefined,
+        model: selectedModel.name,
+        duration: dur,
+        createdAt: new Date().toLocaleTimeString(),
+      }, ...prev]);
+      setIsGenerating(false);
+      setIsPlaying(true);
+      toast('Audio generated successfully!', 'success');
+    }, 2000);
+  };
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'voiceover', label: 'Voiceover', icon: <Mic size={13} /> },
@@ -83,54 +117,120 @@ export default function AudioPage() {
           ))}
         </div>
 
-        {/* Main Content — centered hero */}
-        <div className="flex-1 relative z-10 flex flex-col items-center justify-center pb-40">
-          {/* Hero */}
-          <div className="text-center animate-fade-in mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-text-tertiary mb-3">
-              Audio Studio
-            </p>
-            <h1 className="text-[32px] font-bold leading-tight">
-              <span className="text-text-secondary">Ready to give your</span>
-              <br />
-              <span className="text-gradient">scene a voice?</span>
-            </h1>
-            <p className="text-[13px] text-text-tertiary mt-3 max-w-md">
-              Generate voiceovers, sound effects, and music — powered by AI
-            </p>
-          </div>
+        {/* Main Content */}
+        <div className="flex-1 relative z-10 flex flex-col items-center justify-center pb-40 overflow-y-auto">
+          {results.length === 0 && !isGenerating ? (
+            <>
+              {/* Hero */}
+              <div className="text-center animate-fade-in mb-12">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-text-tertiary mb-3">
+                  Audio Studio
+                </p>
+                <h1 className="text-[32px] font-bold leading-tight">
+                  <span className="text-text-secondary">Ready to give your</span>
+                  <br />
+                  <span className="text-gradient">scene a voice?</span>
+                </h1>
+                <p className="text-[13px] text-text-tertiary mt-3 max-w-md">
+                  Generate voiceovers, sound effects, and music — powered by AI
+                </p>
+              </div>
 
-          {/* Animated voice preview orb */}
-          <div className="relative mb-8">
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105"
-              onClick={() => setIsPlaying(!isPlaying)}
-              style={{
-                background: isPlaying
-                  ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.15))'
-                  : 'linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(100, 40, 180, 0.06))',
-                border: `1px solid ${isPlaying ? 'rgba(168, 85, 247, 0.4)' : 'rgba(168, 85, 247, 0.15)'}`,
-                boxShadow: isPlaying ? '0 0 40px rgba(168, 85, 247, 0.2)' : 'none',
-              }}
-            >
-              {isPlaying ? (
-                <Pause size={24} className="text-accent" />
-              ) : (
-                <Play size={24} className="text-accent ml-1" />
+              {/* Animated voice preview orb */}
+              <div className="relative mb-8">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  style={{
+                    background: isPlaying
+                      ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.15))'
+                      : 'linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(100, 40, 180, 0.06))',
+                    border: `1px solid ${isPlaying ? 'rgba(168, 85, 247, 0.4)' : 'rgba(168, 85, 247, 0.15)'}`,
+                    boxShadow: isPlaying ? '0 0 40px rgba(168, 85, 247, 0.2)' : 'none',
+                  }}
+                >
+                  {isPlaying ? (
+                    <Pause size={24} className="text-accent" />
+                  ) : (
+                    <Play size={24} className="text-accent ml-1" />
+                  )}
+                </div>
+                {isPlaying && (
+                  <>
+                    <div className="absolute inset-0 rounded-full border border-accent/20 animate-ping" style={{ animationDuration: '2s' }} />
+                    <div className="absolute -inset-3 rounded-full border border-accent/10 animate-ping" style={{ animationDuration: '3s' }} />
+                  </>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="w-full max-w-[700px] px-6 pt-6 space-y-3">
+              {/* Generating spinner */}
+              {isGenerating && (
+                <div className="rounded-xl border border-accent/20 bg-accent/5 p-6 flex flex-col items-center gap-3 animate-fade-in">
+                  <div className="w-10 h-10 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                  <p className="text-[13px] text-accent font-medium">Generating audio...</p>
+                  <p className="text-[10px] text-text-tertiary">This may take a moment</p>
+                </div>
               )}
+
+              {/* Results list */}
+              {results.map((r) => (
+                <div key={r.id} className="rounded-xl border border-border/60 bg-gradient-to-br from-[#1a1a1e] to-[#141416] p-4 animate-slide-up">
+                  <div className="flex items-start gap-4">
+                    {/* Play button */}
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="w-12 h-12 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0 hover:bg-accent/25 transition-all"
+                    >
+                      {isPlaying ? <Pause size={18} className="text-accent" /> : <Play size={18} className="text-accent ml-0.5" />}
+                    </button>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] text-text-primary font-medium line-clamp-1">{r.prompt}</p>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="text-[9px] text-text-tertiary flex items-center gap-1"><Clock size={8} />{r.duration}</span>
+                        <span className="text-[9px] text-accent px-1.5 py-0.5 rounded bg-accent/10 border border-accent/15 font-medium capitalize">{r.type}</span>
+                        {r.voice && <span className="text-[9px] text-text-tertiary">Voice: {r.voice}</span>}
+                        <span className="text-[9px] text-text-tertiary">{r.model}</span>
+                      </div>
+                      {/* Waveform visualization */}
+                      <div className="flex items-end gap-[2px] h-8 mt-2">
+                        {Array.from({ length: 40 }, (_, i) => (
+                          <div
+                            key={i}
+                            className="w-[3px] rounded-full bg-accent/40 transition-all"
+                            style={{ height: `${15 + Math.random() * 85}%`, animationDelay: `${i * 30}ms` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => toast('Audio downloaded!', 'success')}
+                        className="p-2 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:border-border-strong transition-all"
+                      >
+                        <Download size={14} />
+                      </button>
+                      <button
+                        onClick={() => toast('Audio regenerated!', 'info')}
+                        className="p-2 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:border-border-strong transition-all"
+                      >
+                        <RefreshCw size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            {/* Pulse rings */}
-            {isPlaying && (
-              <>
-                <div className="absolute inset-0 rounded-full border border-accent/20 animate-ping" style={{ animationDuration: '2s' }} />
-                <div className="absolute -inset-3 rounded-full border border-accent/10 animate-ping" style={{ animationDuration: '3s' }} />
-              </>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Bottom Bar */}
-        <div className="fixed bottom-0 left-[240px] right-0 z-30 px-6 pb-5 pointer-events-none">
+        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
           <div className="max-w-[900px] mx-auto pointer-events-auto">
             <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-visible">
               {/* Top row — Tab selector + Voice info */}
@@ -248,8 +348,8 @@ export default function AudioPage() {
               </div>
 
               {/* Controls Row */}
-              <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-                <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2.5">
+                <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
                   {/* Model Selector */}
                   <div className="relative">
                     <button
@@ -312,10 +412,20 @@ export default function AudioPage() {
                 </div>
 
                 {/* Generate Button */}
-                <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-[13px] font-semibold hover:brightness-110 transition-all active:scale-[0.98] shadow-lg shadow-accent/20">
-                  Generate
-                  <Sparkles size={14} />
-                  <span className="text-white/80">{selectedModel.cost}</span>
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all active:scale-[0.98] shadow-lg shadow-accent/20 ${
+                    isGenerating
+                      ? 'bg-accent/50 text-white/60 cursor-wait'
+                      : 'bg-accent text-white hover:brightness-110'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Generating...</>
+                  ) : (
+                    <>Generate<Sparkles size={14} /><span className="text-white/80">{selectedModel.cost}</span></>
+                  )}
                 </button>
               </div>
             </div>

@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import AppShell from '@/components/AppShell';
-import { savedPrompts, SavedPrompt } from '@/data/prompts';
-import { Heart, Copy, Trash2, Star, Tag, BarChart3, Search } from 'lucide-react';
+import { useToast } from '@/components/ToastProvider';
+import { savedPrompts as initialPrompts, SavedPrompt } from '@/data/prompts';
+import { Heart, Copy, Trash2, Star, Tag, BarChart3, Search, Plus } from 'lucide-react';
 
-function PromptCard({ prompt }: { prompt: SavedPrompt }) {
+function PromptCard({ prompt, onCopy, onDelete }: { prompt: SavedPrompt; onCopy: (text: string) => void; onDelete: (id: string) => void }) {
   const [isFav, setIsFav] = useState(prompt.isFavorite);
 
   return (
@@ -54,10 +55,16 @@ function PromptCard({ prompt }: { prompt: SavedPrompt }) {
           <span className="text-[10px] text-text-tertiary">{prompt.createdAt}</span>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-primary">
+          <button
+            onClick={() => onCopy(prompt.prompt)}
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-primary"
+          >
             <Copy size={12} />
           </button>
-          <button className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-danger">
+          <button
+            onClick={() => onDelete(prompt.id)}
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-danger"
+          >
             <Trash2 size={12} />
           </button>
         </div>
@@ -67,14 +74,28 @@ function PromptCard({ prompt }: { prompt: SavedPrompt }) {
 }
 
 export default function MyPromptsPage() {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [prompts, setPrompts] = useState(initialPrompts);
+  const [favOnly, setFavOnly] = useState(false);
 
-  const filtered = savedPrompts.filter(
+  const filtered = prompts.filter(
     (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (!favOnly || p.isFavorite) &&
+      (p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.prompt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
+      p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase())))
   );
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    toast('Prompt copied to clipboard!', 'success');
+  };
+
+  const handleDelete = (id: string) => {
+    setPrompts((prev) => prev.filter((p) => p.id !== id));
+    toast('Prompt deleted', 'info');
+  };
 
   return (
     <AppShell>
@@ -85,6 +106,13 @@ export default function MyPromptsPage() {
             <h1 className="text-2xl font-bold text-text-primary mb-2">My Prompts</h1>
             <p className="text-sm text-text-tertiary">Your saved and favorite prompts for quick reuse</p>
           </div>
+          <button
+            onClick={() => toast('Create prompt modal coming soon', 'info')}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-accent text-white text-[12px] font-semibold hover:bg-accent-hover transition-all"
+          >
+            <Plus size={14} />
+            New Prompt
+          </button>
         </div>
 
         {/* Search */}
@@ -99,8 +127,15 @@ export default function MyPromptsPage() {
               className="flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
             />
           </div>
-          <button className="px-4 py-2.5 rounded-xl bg-surface border border-border text-[12px] font-medium text-text-secondary hover:text-text-primary hover:border-border-strong transition-all flex items-center gap-1.5">
-            <Star size={12} />
+          <button
+            onClick={() => setFavOnly(!favOnly)}
+            className={`px-4 py-2.5 rounded-xl border text-[12px] font-medium transition-all flex items-center gap-1.5 ${
+              favOnly
+                ? 'bg-accent/10 border-accent/30 text-accent'
+                : 'bg-surface border-border text-text-secondary hover:text-text-primary hover:border-border-strong'
+            }`}
+          >
+            <Star size={12} className={favOnly ? 'fill-accent' : ''} />
             Favorites
           </button>
         </div>
@@ -108,7 +143,7 @@ export default function MyPromptsPage() {
         {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((prompt) => (
-            <PromptCard key={prompt.id} prompt={prompt} />
+            <PromptCard key={prompt.id} prompt={prompt} onCopy={handleCopy} onDelete={handleDelete} />
           ))}
         </div>
 

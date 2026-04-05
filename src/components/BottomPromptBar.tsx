@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, Square, Heart, Pencil, ChevronDown } from 'lucide-react';
 import { imageModels, ImageModel } from '@/data/models';
 import GenerateButton from './GenerateButton';
@@ -10,8 +10,15 @@ import ModelDropdown from './ModelDropdown';
 import AspectRatioDropdown from './AspectRatioDropdown';
 import QualityDropdown from './QualityDropdown';
 import DrawToEditOverlay from './DrawToEditOverlay';
+import CharacterMentionPopup from './CharacterMentionPopup';
+import HighlightedPrompt from './HighlightedPrompt';
+import { Character } from '@/data/characters';
 
-export default function BottomPromptBar() {
+interface BottomPromptBarProps {
+  onGenerate?: (prompt: string, model: string, quality: string, aspect: string, count: number) => void;
+}
+
+export default function BottomPromptBar({ onGenerate }: BottomPromptBarProps) {
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState<ImageModel>(
     imageModels.find((m) => m.id === 'nano-banana-pro')!
@@ -20,6 +27,10 @@ export default function BottomPromptBar() {
   const [showAspectDropdown, setShowAspectDropdown] = useState(false);
   const [showQualityDropdown, setShowQualityDropdown] = useState(false);
   const [showDrawOverlay, setShowDrawOverlay] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionStart, setMentionStart] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const promptRowRef = useRef<HTMLDivElement>(null);
 
   const [imageCount, setImageCount] = useState(1);
   const [aspectRatio, setAspectRatio] = useState('Auto');
@@ -45,31 +56,74 @@ export default function BottomPromptBar() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-[240px] right-0 z-30 px-6 pb-5 pointer-events-none">
+      <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
         <div className="max-w-[900px] mx-auto pointer-events-auto">
           <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-visible">
             {/* Prompt Input Row */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+            <div ref={promptRowRef} className="flex items-center gap-3 px-4 py-3 border-b border-border relative">
               <button className="p-2 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-all shrink-0">
                 <Plus size={16} />
               </button>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe the scene you imagine"
-                rows={1}
-                className="flex-1 bg-transparent text-[14px] text-text-primary placeholder:text-text-tertiary outline-none resize-none min-h-[24px] max-h-[100px] leading-6"
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 100) + 'px';
-                }}
-              />
+              <div className="flex-1 relative min-h-[24px]">
+                <HighlightedPrompt
+                  text={prompt}
+                  className="absolute inset-0 text-[14px] leading-6 py-0"
+                />
+                <textarea
+                  ref={textareaRef}
+                  value={prompt}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPrompt(val);
+                    // Detect @ mention
+                    const cursor = e.target.selectionStart;
+                    const before = val.slice(0, cursor);
+                    const atIdx = before.lastIndexOf('@');
+                    if (atIdx !== -1 && (atIdx === 0 || before[atIdx - 1] === ' ')) {
+                      const query = before.slice(atIdx + 1);
+                      if (!query.includes(' ') || query.length < 20) {
+                        setMentionQuery(query);
+                        setMentionStart(atIdx);
+                      } else {
+                        setMentionQuery(null);
+                      }
+                    } else {
+                      setMentionQuery(null);
+                    }
+                  }}
+                  placeholder="Describe the scene you imagine — type @ to mention a character"
+                  rows={1}
+                  className="relative w-full bg-transparent text-[14px] text-text-primary placeholder:text-text-tertiary outline-none resize-none min-h-[24px] max-h-[100px] leading-6 caret-text-primary"
+                  style={{ color: prompt.includes('@') ? 'transparent' : undefined, caretColor: 'var(--text-primary)' }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 100) + 'px';
+                  }}
+                />
+              </div>
             </div>
 
+            {/* Character Mention Popup */}
+            {mentionQuery !== null && (
+              <div className="relative">
+                <CharacterMentionPopup
+                  query={mentionQuery}
+                  anchorRef={promptRowRef}
+                  onSelect={(char: Character) => {
+                    const before = prompt.slice(0, mentionStart);
+                    const after = prompt.slice(mentionStart + 1 + mentionQuery.length);
+                    setPrompt(`${before}@${char.name}${after}`);
+                    setMentionQuery(null);
+                  }}
+                  onClose={() => setMentionQuery(null)}
+                />
+              </div>
+            )}
+
             {/* Controls Row */}
-            <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-              <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2.5">
+              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
                 {/* Model Selector */}
                 <div className="relative">
                   <button
@@ -148,8 +202,8 @@ export default function BottomPromptBar() {
                 {/* Image Count */}
                 <ImageCountStepper
                   count={imageCount}
-                  max={4}
-                  onIncrement={() => setImageCount((c) => Math.min(c + 1, 4))}
+                  max={6}
+                  onIncrement={() => setImageCount((c) => Math.min(c + 1, 6))}
                   onDecrement={() => setImageCount((c) => Math.max(c - 1, 1))}
                 />
 
@@ -162,7 +216,18 @@ export default function BottomPromptBar() {
               </div>
 
               {/* Generate Button */}
-              <GenerateButton cost={totalCost} />
+              <GenerateButton
+                cost={totalCost}
+                onClick={() => {
+                  if (prompt.trim() && onGenerate) {
+                    onGenerate(prompt.trim(), selectedModel.name, quality, aspectRatio, imageCount);
+                    setPrompt('');
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                    }
+                  }
+                }}
+              />
             </div>
           </div>
         </div>

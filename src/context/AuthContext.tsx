@@ -3,33 +3,44 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+interface User {
+  username: string;
+  email: string;
+  balance: number;
+  isAdmin: boolean;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { username: string; email: string; balance: number } | null;
+  user: User | null;
   login: (username: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DUMMY_CREDENTIALS = { username: 'user', password: '123' };
+const CREDENTIALS = [
+  { username: 'user', password: '123', email: 'abdalrahman1232023@gmail.com', isAdmin: false },
+  { username: 'admin', password: '123', email: 'admin@xenofield.com', isAdmin: true },
+];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<AuthContextType['user']>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('xenofield_auth') : null;
-    if (stored === 'true') {
-      setIsAuthenticated(true);
-      setUser({
-        username: 'abdalrahman1232023',
-        email: 'abdalrahman1232023@gmail.com',
-        balance: 0.00,
-      });
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('xenofield_auth') : null;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setIsAuthenticated(true);
+        setUser(parsed);
+      } catch {
+        // fall through
+      }
     }
     setIsLoading(false);
   }, []);
@@ -45,15 +56,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, pathname, router, isLoading]);
 
   const login = useCallback((username: string, password: string) => {
-    if (username === DUMMY_CREDENTIALS.username && password === DUMMY_CREDENTIALS.password) {
-      setIsAuthenticated(true);
-      setUser({
-        username: 'abdalrahman1232023',
-        email: 'abdalrahman1232023@gmail.com',
+    const cred = CREDENTIALS.find(
+      (c) => c.username === username && c.password === password
+    );
+    if (cred) {
+      const userData: User = {
+        username: cred.username,
+        email: cred.email,
         balance: 0.00,
-      });
+        isAdmin: cred.isAdmin,
+      };
+      setIsAuthenticated(true);
+      setUser(userData);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('xenofield_auth', 'true');
+        sessionStorage.setItem('xenofield_auth', JSON.stringify(userData));
       }
       return { success: true };
     }
@@ -64,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false);
     setUser(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('xenofield_auth');
+      sessionStorage.removeItem('xenofield_auth');
     }
     router.replace('/login');
   }, [router]);

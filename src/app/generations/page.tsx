@@ -2,12 +2,16 @@
 
 import React, { useState } from 'react';
 import AppShell from '@/components/AppShell';
+import { useToast } from '@/components/ToastProvider';
 import { generationHistory, GenerationItem } from '@/data/history';
-import { Image, Video, Clock, Sparkles, MoreHorizontal, Filter } from 'lucide-react';
+import { Image, Video, Clock, Sparkles, MoreHorizontal, Filter, Download, Trash2, Copy, ExternalLink, X } from 'lucide-react';
 
-function GenerationCard({ item }: { item: GenerationItem }) {
+function GenerationCard({ item, onSelect }: { item: GenerationItem; onSelect: (item: GenerationItem) => void }) {
   return (
-    <div className="group rounded-2xl border border-border bg-surface overflow-hidden hover:border-border-strong transition-all cursor-pointer">
+    <div
+      className="group rounded-2xl border border-border bg-surface overflow-hidden hover:border-border-strong transition-all cursor-pointer"
+      onClick={() => onSelect(item)}
+    >
       {/* Thumbnail */}
       <div
         className="aspect-square relative overflow-hidden"
@@ -45,7 +49,7 @@ function GenerationCard({ item }: { item: GenerationItem }) {
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
           <button className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
-            <MoreHorizontal size={16} className="text-white" />
+            <ExternalLink size={16} className="text-white" />
           </button>
         </div>
       </div>
@@ -74,7 +78,9 @@ function GenerationCard({ item }: { item: GenerationItem }) {
 }
 
 export default function GenerationsPage() {
+  const { toast } = useToast();
   const [filter, setFilter] = useState<'all' | 'image' | 'video'>('all');
+  const [selected, setSelected] = useState<GenerationItem | null>(null);
 
   const filtered = filter === 'all'
     ? generationHistory
@@ -82,11 +88,11 @@ export default function GenerationsPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-6xl mx-auto">
+      <div className="p-4 md:p-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 md:mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary mb-2">Generations</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-text-primary mb-1 md:mb-2">Generations</h1>
             <p className="text-sm text-text-tertiary">Your generation history and results</p>
           </div>
         </div>
@@ -118,10 +124,68 @@ export default function GenerationsPage() {
         {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((item) => (
-            <GenerationCard key={item.id} item={item} />
+            <GenerationCard key={item.id} item={item} onSelect={setSelected} />
           ))}
         </div>
       </div>
+
+      {/* Detail Panel Overlay */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelected(null)}>
+          <div className="w-full max-w-md bg-bg-secondary border border-border rounded-2xl shadow-elevated animate-scale-in overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <h3 className="text-[15px] font-bold text-text-primary">Generation Details</h3>
+              <button onClick={() => setSelected(null)} className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-text-primary transition-all">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Thumbnail */}
+            <div
+              className="aspect-video w-full flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${selected.thumbnailColor}, ${selected.thumbnailColor}88)` }}
+            >
+              {selected.type === 'image' ? <Image size={40} className="text-white/20" /> : <Video size={40} className="text-white/20" />}
+            </div>
+
+            {/* Info */}
+            <div className="px-5 py-4 space-y-3">
+              <p className="text-[13px] text-text-primary leading-relaxed">{selected.prompt}</p>
+
+              <div className="space-y-2">
+                {[
+                  ['Type', selected.type.charAt(0).toUpperCase() + selected.type.slice(1)],
+                  ['Model', selected.model],
+                  ['Status', selected.status],
+                  ['Cost', `${selected.cost} credits`],
+                  ['Created', selected.createdAt],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-[11px] text-text-tertiary">{label}</span>
+                    <span className="text-[11px] text-text-primary font-medium">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  onClick={() => { navigator.clipboard.writeText(selected.prompt).catch(() => {}); toast('Prompt copied!', 'success'); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-surface border border-border text-[12px] font-medium text-text-secondary hover:text-text-primary hover:border-border-strong transition-all"
+                >
+                  <Copy size={12} /> Copy Prompt
+                </button>
+                <button
+                  onClick={() => { toast('Downloaded!', 'success'); setSelected(null); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-accent text-white text-[12px] font-medium hover:bg-accent-hover transition-all"
+                >
+                  <Download size={12} /> Download
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
