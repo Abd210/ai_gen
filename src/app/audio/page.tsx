@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import AppShell from '@/components/AppShell';
+import AmbientBackground from '@/components/AmbientBackground';
 import { useToast } from '@/components/ToastProvider';
 import {
   Mic, Play, Pause, Volume2, VolumeX, ChevronDown,
@@ -94,21 +95,7 @@ export default function AudioPage() {
     <AppShell>
       <div className="relative h-screen flex flex-col overflow-hidden">
         {/* Background Glow */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full animate-glow-pulse"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(168, 85, 247, 0.06) 0%, rgba(120, 40, 200, 0.03) 40%, transparent 70%)',
-            }}
-          />
-          <div
-            className="absolute bottom-1/4 left-1/3 w-[400px] h-[300px] rounded-full animate-glow-pulse"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(236, 72, 153, 0.04) 0%, transparent 70%)',
-              animationDelay: '2s',
-            }}
-          />
-        </div>
+        <AmbientBackground planet="saturn" intensity={0.6} />
 
         {/* Waveform Background Art */}
         <div className="absolute bottom-[120px] left-0 right-0 h-[200px] pointer-events-none z-0 flex items-end justify-center gap-[3px] px-8 opacity-30">

@@ -14,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   PanelLeftClose,
+  PanelLeftOpen,
   Mic,
   ShieldOff,
   ShieldCheck,
@@ -21,6 +22,7 @@ import {
   LayoutDashboard,
   UserCircle2,
   X,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ToastProvider';
@@ -38,6 +40,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Crop,
   LayoutDashboard,
   UserCircle2,
+  SlidersHorizontal,
 };
 
 interface SidebarItemProps {
@@ -45,19 +48,22 @@ interface SidebarItemProps {
   icon: string;
   route: string;
   isActive: boolean;
+  collapsed?: boolean;
   onClick?: () => void;
 }
 
-function SidebarItem({ label, icon, route, isActive, onClick }: SidebarItemProps) {
+function SidebarItem({ label, icon, route, isActive, collapsed, onClick }: SidebarItemProps) {
   const IconComponent = iconMap[icon];
 
   return (
     <Link
       href={route}
       onClick={onClick}
+      title={collapsed ? label : undefined}
       className={`
-        flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium
+        flex items-center gap-3 rounded-xl text-[13px] font-medium
         transition-all duration-200 group relative
+        ${collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2.5'}
         ${isActive
           ? 'bg-accent-muted text-accent'
           : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
@@ -70,7 +76,13 @@ function SidebarItem({ label, icon, route, isActive, onClick }: SidebarItemProps
           className={`shrink-0 transition-colors ${isActive ? 'text-accent' : 'text-text-tertiary group-hover:text-text-secondary'}`}
         />
       )}
-      <span>{label}</span>
+      {!collapsed && <span>{label}</span>}
+      {/* Tooltip on hover when collapsed */}
+      {collapsed && (
+        <div className="absolute left-full ml-2 px-2 py-1 rounded-md bg-bg-secondary border border-border text-[11px] text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-dropdown">
+          {label}
+        </div>
+      )}
     </Link>
   );
 }
@@ -82,8 +94,7 @@ const menuItems = [
   { id: 'video', label: 'Video', icon: 'Video', route: '/video' },
   { id: 'audio', label: 'Audio', icon: 'Mic', route: '/audio' },
   { id: 'post-studio', label: 'Post Studio', icon: 'LayoutDashboard', route: '/post-studio' },
-  { id: 'image-cropper', label: 'Image Cropper', icon: 'Crop', route: '/image-cropper' },
-  { id: 'remove-meta', label: 'Remove Meta', icon: 'ShieldOff', route: '/remove-meta' },
+  { id: 'image-editor', label: 'Image Editor', icon: 'SlidersHorizontal', route: '/image-editor' },
   { id: 'characters', label: 'Characters', icon: 'UserCircle2', route: '/characters' },
   { id: 'motion-control', label: 'Motion Control', icon: 'Joystick', route: '/motion-control' },
   { id: 'my-prompts', label: 'My Prompts', icon: 'FileText', route: '/my-prompts' },
@@ -92,9 +103,11 @@ const menuItems = [
 interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen = false, onClose, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { toast } = useToast();
@@ -104,28 +117,60 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     if (onClose) onClose();
   };
 
+  const sidebarWidth = collapsed ? 'w-[60px] min-w-[60px]' : 'w-[240px] min-w-[240px]';
+
   const sidebarContent = (
-    <aside className="w-[240px] min-w-[240px] h-full bg-bg-secondary border-r border-border flex flex-col">
+    <aside className={`${sidebarWidth} h-full bg-bg-secondary border-r border-border flex flex-col transition-all duration-300`}>
       {/* Logo */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center border border-accent/20">
-            <span className="text-sm font-bold text-accent">Sn</span>
+      <div className={`flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-4'} py-4 border-b border-border`}>
+        {!collapsed && (
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center border border-accent/15">
+              <img src="/xenofield-icon.png" alt="Xenofield" className="w-6 h-6 object-contain" />
+            </div>
+            <span className="text-[15px] font-semibold text-text-primary tracking-tight">Xenofield</span>
           </div>
-          <span className="text-[15px] font-semibold text-text-primary tracking-tight">Xenofield</span>
-        </div>
-        {/* Close button on mobile, collapse on desktop */}
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-secondary md:block"
-        >
-          <X size={16} className="md:hidden" />
-          <PanelLeftClose size={16} className="hidden md:block" />
-        </button>
+        )}
+        {collapsed && (
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center border border-accent/15">
+            <img src="/xenofield-icon.png" alt="Xenofield" className="w-6 h-6 object-contain" />
+          </div>
+        )}
+        {/* Collapse/Expand toggle — desktop only */}
+        {!collapsed && (
+          <button
+            onClick={onToggleCollapse}
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-secondary hidden md:block"
+          >
+            <PanelLeftClose size={16} />
+          </button>
+        )}
+        {/* Mobile close */}
+        {!collapsed && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-secondary md:hidden"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
+      {/* Expand button when collapsed */}
+      {collapsed && (
+        <div className="flex justify-center py-2 border-b border-border/30">
+          <button
+            onClick={onToggleCollapse}
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-text-tertiary hover:text-text-secondary"
+            title="Expand sidebar"
+          >
+            <PanelLeftOpen size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+      <nav className={`flex-1 ${collapsed ? 'px-1.5' : 'px-3'} py-3 space-y-0.5 overflow-y-auto`}>
         {menuItems.map((item) => (
           <SidebarItem
             key={item.id}
@@ -133,6 +178,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             icon={item.icon}
             route={item.route}
             isActive={pathname === item.route}
+            collapsed={collapsed}
             onClick={handleNavClick}
           />
         ))}
@@ -145,6 +191,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               icon="ShieldCheck"
               route="/admin"
               isActive={pathname === '/admin'}
+              collapsed={collapsed}
               onClick={handleNavClick}
             />
           </>
@@ -152,47 +199,59 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom Section */}
-      <div className="px-3 pb-3 space-y-1 border-t border-border pt-3">
+      <div className={`${collapsed ? 'px-1.5' : 'px-3'} pb-3 space-y-1 border-t border-border pt-3`}>
         {/* Billing */}
-        <button
-          onClick={() => toast('Billing dashboard coming soon', 'info')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all"
+        <Link
+          href="/billing"
+          className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} ${collapsed ? 'px-0' : 'px-3'} py-2.5 rounded-xl text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all`}
+          title={collapsed ? 'Billing' : undefined}
         >
-          <Wallet size={18} className="text-text-tertiary" />
-          <span>Billing</span>
-        </button>
+          <Wallet size={18} className="text-text-tertiary shrink-0" />
+          {!collapsed && <span>Billing</span>}
+        </Link>
 
         {/* User */}
-        <div className="flex items-center gap-3 px-3 py-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
-            {user?.username?.charAt(0).toUpperCase() || 'U'}
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-medium text-text-primary truncate">
+                {user?.email || 'user@email.com'}
+              </p>
+              <p className="text-[11px] text-text-tertiary">
+                ${user?.balance?.toFixed(2) || '0.00'}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-medium text-text-primary truncate">
-              {user?.email || 'user@email.com'}
-            </p>
-            <p className="text-[11px] text-text-tertiary">
-              ${user?.balance?.toFixed(2) || '0.00'}
-            </p>
+        )}
+        {collapsed && (
+          <div className="flex justify-center py-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0" title={user?.email || 'User'}>
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Add Funds */}
-        <button
-          onClick={() => toast('Add funds modal coming soon', 'info')}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-accent text-white text-[13px] font-semibold hover:bg-accent-hover transition-all active:scale-[0.98]"
+        <Link
+          href="/billing"
+          className={`w-full flex items-center justify-center gap-2 ${collapsed ? 'px-1' : 'px-3'} py-2.5 rounded-xl bg-accent text-white text-[13px] font-semibold hover:bg-accent-hover transition-all active:scale-[0.98]`}
+          title={collapsed ? 'Add funds' : undefined}
         >
           <Sparkles size={14} />
-          <span>Add funds</span>
-        </button>
+          {!collapsed && <span>Add funds</span>}
+        </Link>
 
         {/* Sign Out */}
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[12px] text-text-tertiary hover:text-text-secondary hover:bg-surface-hover transition-all"
+          className={`w-full flex items-center justify-center gap-2 ${collapsed ? 'px-1' : 'px-3'} py-2 rounded-xl text-[12px] text-text-tertiary hover:text-text-secondary hover:bg-surface-hover transition-all`}
+          title={collapsed ? 'Sign out' : undefined}
         >
           <LogOut size={14} />
-          <span>Sign out</span>
+          {!collapsed && <span>Sign out</span>}
         </button>
       </div>
     </aside>

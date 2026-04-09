@@ -5,6 +5,7 @@ import AppShell from '@/components/AppShell';
 import PageHero from '@/components/PageHero';
 import BottomPromptBar from '@/components/BottomPromptBar';
 import GenerationGallery from '@/components/GenerationGallery';
+import AmbientBackground from '@/components/AmbientBackground';
 import { generateDemoImages } from '@/data/generations';
 import { useGenerations } from '@/context/GenerationContext';
 import { History, Users } from 'lucide-react';
@@ -26,15 +27,8 @@ export default function ImagePage() {
   return (
     <AppShell>
       <div className="relative min-h-screen flex flex-col">
-        {/* Background Glow */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full animate-glow-pulse"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(20, 60, 140, 0.12) 0%, rgba(10, 30, 80, 0.06) 40%, transparent 70%)',
-            }}
-          />
-        </div>
+        {/* Animated Background */}
+        <AmbientBackground planet="jupiter" intensity={0.7} />
 
         {/* Content */}
         <div className="flex-1 relative z-10 pb-40">

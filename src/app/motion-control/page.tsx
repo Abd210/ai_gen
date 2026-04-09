@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import AppShell from '@/components/AppShell';
+import AmbientBackground from '@/components/AmbientBackground';
 import {
   Joystick, Play, Image as ImageIcon, Film, ChevronDown,
   Upload, X, Sparkles, Move, MoveHorizontal, ArrowUpRight,
@@ -79,17 +80,8 @@ export default function MotionControlPage() {
   return (
     <AppShell>
       <div className="relative h-screen flex overflow-hidden">
-        {/* Background glows */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full animate-glow-pulse"
-            style={{ background: 'radial-gradient(ellipse, rgba(168, 85, 247, 0.05) 0%, transparent 70%)' }}
-          />
-          <div
-            className="absolute bottom-1/3 right-1/3 w-[300px] h-[300px] rounded-full animate-glow-pulse"
-            style={{ background: 'radial-gradient(ellipse, rgba(236, 72, 153, 0.03) 0%, transparent 70%)', animationDelay: '2s' }}
-          />
-        </div>
+        {/* Animated Background */}
+        <AmbientBackground planet="mercury" intensity={0.6} />
 
         {/* ═══════════════ LEFT PANEL ═══════════════ */}
         <div className="w-[300px] min-w-[300px] h-full border-r border-border/40 bg-[#111113] flex flex-col z-10 overflow-y-auto">

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import AppShell from '@/components/AppShell';
+import AmbientBackground from '@/components/AmbientBackground';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/context/AuthContext';
 import { useGenerations } from '@/context/GenerationContext';
@@ -194,9 +195,7 @@ export default function AdminPage() {
     <AppShell>
       <div className="relative h-screen flex flex-col overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[600px] h-[400px] rounded-full animate-glow-pulse" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.05) 0%, rgba(168,85,247,0.03) 40%, transparent 70%)' }} />
-        </div>
+        <AmbientBackground planet="mars" intensity={0.4} />
 
         <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
           {/* Header */}

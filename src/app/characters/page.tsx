@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import AppShell from '@/components/AppShell';
+import AmbientBackground from '@/components/AmbientBackground';
 import { useCharacters } from '@/context/CharacterContext';
 import { Character } from '@/data/characters';
 import {
@@ -169,21 +170,7 @@ export default function CharactersPage() {
     <AppShell>
       <div className="relative min-h-screen flex flex-col">
         {/* Background glows */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-[10%] right-[20%] w-[500px] h-[400px] rounded-full animate-glow-pulse"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(168, 85, 247, 0.08) 0%, rgba(120, 40, 200, 0.03) 40%, transparent 70%)',
-            }}
-          />
-          <div
-            className="absolute bottom-[20%] left-[10%] w-[400px] h-[300px] rounded-full animate-glow-pulse"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(236, 72, 153, 0.05) 0%, transparent 70%)',
-              animationDelay: '2s',
-            }}
-          />
-        </div>
+        <AmbientBackground planet="neptune" intensity={0.5} />
 
         {/* Content */}
         <div className="relative z-10 px-4 md:px-8 py-6 md:py-8 max-w-[1200px] mx-auto w-full">

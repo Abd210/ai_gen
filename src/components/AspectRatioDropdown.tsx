@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, Square } from 'lucide-react';
 
 interface AspectRatioDropdownProps {
@@ -25,37 +26,62 @@ const ratioIcons: Record<string, React.ReactNode> = {
 };
 
 export default function AspectRatioDropdown({ options, selected, onSelect, onClose }: AspectRatioDropdownProps) {
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const el = triggerRef.current?.closest('[class*="relative"]') as HTMLElement;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      setPos({
+        left: rect.left,
+        bottom: window.innerHeight - rect.top + 8,
+      });
+    }
+  }, []);
+
+  const dropdown = (
+    <>
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+      />
+      {pos && (
+        <div
+          className="bg-bg-secondary border border-border rounded-2xl shadow-dropdown animate-scale-in overflow-hidden"
+          style={{ position: 'fixed', zIndex: 9999, left: pos.left, bottom: pos.bottom, width: 180 }}
+        >
+          <div className="px-4 py-3 border-b border-border">
+            <span className="text-[13px] font-medium text-text-primary">Aspect ratio</span>
+          </div>
+          <div className="py-1 max-h-[380px] overflow-y-auto">
+            {options.map((ratio) => (
+              <button
+                key={ratio}
+                onClick={() => onSelect(ratio)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all ${
+                  selected === ratio ? 'bg-accent-dim text-accent' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
+                }`}
+              >
+                <span className="w-5 flex items-center justify-center shrink-0">
+                  {ratioIcons[ratio] || <Square size={12} />}
+                </span>
+                <span className="text-[13px] font-medium flex-1">{ratio}</span>
+                {selected === ratio && <Check size={14} className="text-accent shrink-0" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute bottom-full left-0 mb-2 w-[180px] bg-bg-secondary border border-border rounded-2xl shadow-dropdown z-50 animate-scale-in overflow-hidden">
-        <div className="px-4 py-3 border-b border-border">
-          <span className="text-[13px] font-medium text-text-primary">Aspect ratio</span>
-        </div>
-        <div className="py-1 max-h-[380px] overflow-y-auto">
-          {options.map((ratio) => (
-            <button
-              key={ratio}
-              onClick={() => onSelect(ratio)}
-              className={`
-                w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all
-                ${selected === ratio
-                  ? 'bg-accent-dim text-accent'
-                  : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
-                }
-              `}
-            >
-              <span className="w-5 flex items-center justify-center shrink-0">
-                {ratioIcons[ratio] || <Square size={12} />}
-              </span>
-              <span className="text-[13px] font-medium flex-1">{ratio}</span>
-              {selected === ratio && (
-                <Check size={14} className="text-accent shrink-0" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div ref={triggerRef} />
+      {mounted && createPortal(dropdown, document.body)}
     </>
   );
 }

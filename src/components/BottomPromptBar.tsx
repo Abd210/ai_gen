@@ -56,9 +56,9 @@ export default function BottomPromptBar({ onGenerate }: BottomPromptBarProps) {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
         <div className="max-w-[900px] mx-auto pointer-events-auto">
-          <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-visible">
+          <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated" style={{ overflow: 'visible' }}>
             {/* Prompt Input Row */}
             <div ref={promptRowRef} className="flex items-center gap-3 px-4 py-3 border-b border-border relative">
               <button className="p-2 rounded-lg bg-surface border border-border text-text-tertiary hover:text-text-primary hover:bg-surface-hover transition-all shrink-0">
