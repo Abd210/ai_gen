@@ -217,7 +217,7 @@ export default function AudioPage() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
+        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-[60] px-3 md:px-6 pb-3 md:pb-5 pointer-events-none">
           <div className="max-w-[900px] mx-auto pointer-events-auto">
             <div className="bg-bg-tertiary border border-border rounded-2xl shadow-elevated overflow-visible">
               {/* Top row — Tab selector + Voice info */}
@@ -258,8 +258,8 @@ export default function AudioPage() {
                     {/* Voice Picker Dropdown */}
                     {showVoicePicker && (
                       <>
-                        <div className="fixed inset-0 z-40" onClick={() => setShowVoicePicker(false)} />
-                        <div className="absolute bottom-full left-0 mb-2 w-[280px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-50 overflow-hidden animate-scale-in">
+                        <div className="fixed inset-0 z-[70]" onClick={() => setShowVoicePicker(false)} />
+                        <div className="absolute bottom-full left-0 mb-2 w-[280px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-[80] overflow-hidden animate-scale-in">
                           <div className="px-3 py-2 border-b border-border">
                             <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">Choose Voice</p>
                           </div>
@@ -336,7 +336,7 @@ export default function AudioPage() {
 
               {/* Controls Row */}
               <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2.5">
-                <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                   {/* Model Selector */}
                   <div className="relative">
                     <button
@@ -349,8 +349,8 @@ export default function AudioPage() {
                     </button>
                     {showModelDropdown && (
                       <>
-                        <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
-                        <div className="absolute bottom-full left-0 mb-2 w-[200px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-50 overflow-hidden py-1 animate-scale-in">
+                        <div className="fixed inset-0 z-[70]" onClick={() => setShowModelDropdown(false)} />
+                        <div className="absolute bottom-full left-0 mb-2 w-[200px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-[80] overflow-hidden py-1 animate-scale-in">
                           {audioModels.map((m) => (
                             <button
                               key={m.id}

@@ -407,8 +407,8 @@ export default function VideoPage() {
                   </button>
                   {showMotionModelDropdown && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowMotionModelDropdown(false)} />
-                      <div className="absolute top-full left-0 mt-1 w-[220px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-50 py-1 animate-scale-in max-h-[260px] overflow-y-auto">
+                      <div className="fixed inset-0 z-[70]" onClick={() => setShowMotionModelDropdown(false)} />
+                      <div className="absolute top-full left-0 mt-1 w-[220px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-[80] py-1 animate-scale-in max-h-[260px] overflow-y-auto">
                         {videoModels.map((m) => (
                           <button key={m.id} onClick={() => { setSelectedMotionModel(m); setShowMotionModelDropdown(false); }} className={`w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] transition-all ${selectedMotionModel.id === m.id ? 'bg-accent/8 text-accent' : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'}`}>
                             <span>{m.icon}</span>

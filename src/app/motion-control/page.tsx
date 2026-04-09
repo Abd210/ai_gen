@@ -157,8 +157,8 @@ export default function MotionControlPage() {
               </button>
               {showModelDropdown && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
-                  <div className="absolute top-full left-0 mt-1 w-[220px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-50 py-1 animate-scale-in max-h-[260px] overflow-y-auto">
+                  <div className="fixed inset-0 z-[70]" onClick={() => setShowModelDropdown(false)} />
+                  <div className="absolute top-full left-0 mt-1 w-[220px] bg-bg-secondary border border-border rounded-xl shadow-dropdown z-[80] py-1 animate-scale-in max-h-[260px] overflow-y-auto">
                     {videoModels.map((m) => (
                       <button
                         key={m.id}
