@@ -7,7 +7,7 @@ import {
   Joystick, Play, Image as ImageIcon, Film, ChevronDown,
   Upload, X, Sparkles, Move, MoveHorizontal, ArrowUpRight,
   ArrowDownRight, RotateCw, Orbit, Focus, Maximize2,
-  SlidersHorizontal, Eye, Clock, Square, Heart, Info,
+  SlidersHorizontal, Eye, Square, Heart, Info,
   Plus, Repeat, ArrowRight, Layers, Camera, Axis3D,
   Cpu, Gauge,
 } from 'lucide-react';
@@ -46,7 +46,6 @@ export default function MotionControlPage() {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [quality, setQuality] = useState('720p');
   const [motionIntensity, setMotionIntensity] = useState(50);
-  const [duration, setDuration] = useState(5);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const motionVideoRef = useRef<HTMLInputElement>(null);
@@ -290,30 +289,7 @@ export default function MotionControlPage() {
             </div>
           </div>
 
-          {/* ── Duration ─── */}
-          <div className="px-3 pt-2">
-            <div className="rounded-xl border border-border/50 bg-[#1a1a1e] px-3 py-2.5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-medium text-text-primary flex items-center gap-1"><Clock size={10} /> Duration</span>
-                <span className="text-[10px] text-accent font-semibold">{duration}s</span>
-              </div>
-              <div className="flex items-center gap-1">
-                {[3, 5, 8, 10].map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDuration(d)}
-                    className={`flex-1 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                      duration === d
-                        ? 'bg-accent/15 text-accent border border-accent/25'
-                        : 'bg-surface text-text-tertiary border border-border/30 hover:border-border hover:text-text-secondary'
-                    }`}
-                  >
-                    {d}s
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+
 
           {/* ── Generate Button ─── */}
           <div className="px-3 pt-3 pb-4 mt-auto">
@@ -355,9 +331,6 @@ export default function MotionControlPage() {
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-text-tertiary flex items-center gap-1">
                 <Gauge size={10} /> {motionIntensity}% intensity
-              </span>
-              <span className="text-[10px] text-text-tertiary flex items-center gap-1">
-                <Clock size={10} /> {duration}s
               </span>
             </div>
           </div>
