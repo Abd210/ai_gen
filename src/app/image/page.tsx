@@ -72,13 +72,9 @@ export default function ImagePage() {
           ) : (
             <div className="flex-1 flex items-center justify-center min-h-[calc(100vh-200px)]">
               <PageHero
-                icon={
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-text-tertiary">
-                    <path d="M12 3c-1.2 2-3 3.5-5 4.5S3 10 3 12s1.5 3.5 2 4.5 3.8 2.5 5 4.5c1.2-2 3-3.5 5-4.5s4-2.5 4-4.5-1.5-3.5-2-4.5-3.8-2.5-5-4.5Z" />
-                  </svg>
-                }
+                icon={<img src="/xenofield-icon.png" alt="Xenofield" className="w-8 h-8 object-contain" />}
                 title="START CREATING WITH"
-                subtitle="NANO BANANA PRO"
+                subtitle="XENOFIELD STUDIO"
                 description="Describe a scene, character, mood, or style — and watch it come to life"
               />
             </div>

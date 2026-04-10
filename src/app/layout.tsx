@@ -14,6 +14,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Xenofield — AI Creative Studio",
   description: "AI-powered creative platform for image generation, video generation, and workflows",
+  icons: {
+    icon: '/xenofield-icon.png',
+    apple: '/xenofield-icon.png',
+  },
 };
 
 export default function RootLayout({

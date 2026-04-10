@@ -764,14 +764,15 @@ export default function WorkflowCanvas({
   );
 
   // ─── Canvas pan ───────────────────────
+  // Nodes call e.stopPropagation(), so any mousedown reaching here is on empty canvas space.
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-bg')) {
-        setSelectedNodeId(null);
-        setSelectedConnectionId(null);
-        setIsPanning(true);
-        setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-      }
+      // Only primary button (left click)
+      if (e.button !== 0) return;
+      setSelectedNodeId(null);
+      setSelectedConnectionId(null);
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     },
     [pan]
   );
